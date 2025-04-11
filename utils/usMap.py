@@ -12,11 +12,11 @@ from shapely.geometry import MultiPolygon
 # States and Provinces
 def states(ax):
     # Load states/provinces shapefile
-    shapename = 'admin_1_states_provinces_lakes'
-    states_shp = shpreader.natural_earth(resolution='110m', category='cultural', name=shapename)
+    shapename = 'utils/shapefiles/ne_110m_admin_1_states_provinces_lakes'
+    states_shp = shpreader.Reader(shapename)
     
     # Creating a mask for the heatmap
-    states = list(shpreader.Reader(states_shp).geometries())
+    states = list(states_shp.geometries())
 
     # Some states have multipoligons within them causing problems
     all_polygons = []
@@ -34,7 +34,7 @@ def states(ax):
     global usa_geoms
     usa_geoms = MultiPolygon(all_polygons)
     
-    for state in shpreader.Reader(states_shp).records():
+    for state in states_shp.records():
     
         facecolor = 'none' #Transparent
         edgecolor = 'black'
