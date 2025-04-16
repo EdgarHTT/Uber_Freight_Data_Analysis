@@ -37,12 +37,34 @@ def weight(point:tuple[float,float], weight:int, centroid:tuple[float, float]) -
     return (weight * distance.distance(point, centroid).miles)
 
     
-def calculate_centroid(points:list[tuple[float,float]]) -> tuple[float,float]:
-    # Mean of all points approach
-    mean_lat = sum([coors[0] for coors in points])/len(points)
-    mean_lon = sum([coors[1] for coors in points])/len(points)
+def calculate_centroid(points:list[tuple[float,float]], weights:list[int], tol=1e-5, max_iter=100) -> tuple[float,float]:
+    # simplified weiszfeld approach
+    # Initialize at the arithmetic mean
+    lat = sum(w * p[0] for p, w in zip(points, weights)) / sum(weights)
+    lon = sum(w * p[1] for p, w in zip(points, weights)) / sum(weights)
 
-    return (mean_lat, mean_lon)
+    for _ in range(max_iter):
+        numerator_lat = 0.0
+        numerator_lon = 0.0
+        denominator = 0.0
+
+        for point, w in zip(points, weights):
+            d = distance.distance((lat, lon), point).miles
+            if d == 0:
+                continue  # Skip if distance is zero to avoid division by zero
+            numerator_lat += w * point[0] / d
+            numerator_lon += w * point[1] / d
+            denominator += w / d
+
+        new_lat = numerator_lat / denominator
+        new_lon = numerator_lon / denominator
+
+        if abs(new_lat - lat) < tol and abs(new_lon - lon) < tol:
+            break
+
+        lat, lon = new_lat, new_lon
+
+    return lat, lon
 
 # Turning function into a generator
 def k_means_cluster_generator(k:int, points:list[tuple[float, float]], weights:list[int]) -> tuple[list[tuple[float, float]], list[tuple[float,float]]]:
@@ -69,7 +91,7 @@ def k_means_cluster_generator(k:int, points:list[tuple[float, float]], weights:l
 
         # Calculate new centroids
         #   (the standard implementation uses the mean of all points in a cluster to determine the new centroid)
-        new_centroids = [calculate_centroid(cluster) for cluster in clusters]
+        new_centroids = [calculate_centroid(cluster, weights) for cluster in clusters]
 
         converged = (new_centroids == centroids)
         centroids = new_centroids
