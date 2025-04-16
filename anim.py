@@ -142,4 +142,5 @@ ani = animation.FuncAnimation(
 fig.set_size_inches(12, 6)
 fig.set_dpi(150)
 plt.title('Weighted K-Means Clustering', fontsize=14, pad=20)
+ani.save("Weighted_K-Means_iters.gif")
 plt.show()
